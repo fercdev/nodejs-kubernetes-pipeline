@@ -55,6 +55,7 @@ pipeline {
              when {
                 branch 'develop'
             }
+            agent any
             steps {
                 withKubeConfig([credentialsId: 'minikube-kubeconfig']) {
                     script {
@@ -74,6 +75,7 @@ pipeline {
              when {
                 branch 'develop'
             }
+            agent any
             steps {
                 withKubeConfig([credentialsId: 'minikube-kubeconfig']) {
                     sh "kubectl set image deployment/$KUBE_DEPLOYMENT_NAME mi-app=$DOCKER_REPO:latest"
