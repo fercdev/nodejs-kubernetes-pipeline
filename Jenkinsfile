@@ -2,8 +2,9 @@ pipeline {
     agent none
 
     environment {
-        SONARQUBE_TOKEN = credentials('sonar-token')
-        CONTAINER_NAME_PROJECT = 'node_project'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKER_REPO = 'fercdevv/jenkins-node'
+        KUBE_DEPLOYMENT_NAME='mi-app'
     }
 
     stages {
@@ -31,36 +32,6 @@ pipeline {
             }
         }
 
-        stage('Listar carpetas y archivos del repo...') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                }
-            }
-            steps {
-                sh 'ls -la'
-            }
-        }
-
-        stage('SonarQube Analisis...') {
-            agent any
-            steps {
-                script {
-                    def scannerHome = tool 'SonarScanner';
-                    withSonarQubeEnv() {
-                        sh "${scannerHome}/bin/sonar-scanner"
-                    }
-                }
-            }
-        }
-
-        stage('SonarQube quality gate...') {
-            agent any
-            steps {
-                waitForQualityGate abortPipeline: true
-            }
-        }
-
         stage('Construir y pushear imagen a dockerhub') {
             when {
                 branch 'develop'
@@ -71,11 +42,6 @@ pipeline {
                     image 'docker:latest'
                 }
             }
-
-            environment {
-                    DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-                    DOCKER_REPO = 'fercdevv/jenkins-node'
-            }
             steps {
                 sh '''
                 echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
@@ -85,54 +51,26 @@ pipeline {
             }
         }
 
-        stage('Testear conexion SHH con servidor digital Ocean') {
-            when {
-                branch 'develop'
-            }
-            agent any
-
+        stage('Despliegue inicial en minikube...') {
             steps {
-                sshagent(['droplet-ssh-key']) {
-                    sh 'ssh -o StrictHostKeyChecking=no root@142.93.115.84 "echo conexion correcta"'
+                withKubeConfig([credentialsId: 'minikube-kubeconfig']) {
+                    script {
+                        def deploymentExists = sh(script: "kubectl get deployment $KUBE_DEPLOYMENT_NAME --ignore-not-found", returnStdout: true).trim()
+                        if (deploymentExists) {
+                            echo "El deployment ya existe, proceder a la actualizacion de la imagen..."
+                        } else {
+                            echo "Deployment no existe proceder a aplicarlo..."
+                            sh "kubectl apply -f deployment.yaml"
+                        }
+                    }
                 }
             }
         }
 
-        stage('Remover container en ejecucion antes de su actualizacion...') {
-            when {
-                branch 'develop'
-            }
-            agent any
+        stage('Actualizacion de imagen en minikube...') {
             steps {
-                sshagent(['droplet-ssh-key']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no root@142.93.115.84 "
-                        docker rm -f $CONTAINER_NAME_PROJECT || true
-                        "
-                    '''
-                }
-            }
-
-        }
-
-        stage('Desplegar proyecto node a Digital ocean') {
-            when {
-                branch 'develop'
-            }
-            agent any
-
-            environment {
-                    DOCKER_REPO = 'fercdevv/jenkins-node'
-            }
-
-            steps {
-                sshagent(['droplet-ssh-key']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no root@142.93.115.84 "
-                        docker pull $DOCKER_REPO:latest &&
-                        docker run -d --name node_project -p 8080:3000 $DOCKER_REPO:latest
-                        "
-                    '''
+                withKubeConfig([credentialsId: 'minikube-kubeconfig']) {
+                    sh "kubectl set image deployment/$KUBE_DEPLOYMENT_NAME mi-app=$DOCKER_REPO:latest"
                 }
             }
         }
