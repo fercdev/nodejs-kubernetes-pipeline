@@ -52,6 +52,9 @@ pipeline {
         }
 
         stage('Despliegue inicial en minikube...') {
+             when {
+                branch 'develop'
+            }
             steps {
                 withKubeConfig([credentialsId: 'minikube-kubeconfig']) {
                     script {
@@ -68,6 +71,9 @@ pipeline {
         }
 
         stage('Actualizacion de imagen en minikube...') {
+             when {
+                branch 'develop'
+            }
             steps {
                 withKubeConfig([credentialsId: 'minikube-kubeconfig']) {
                     sh "kubectl set image deployment/$KUBE_DEPLOYMENT_NAME mi-app=$DOCKER_REPO:latest"
