@@ -55,7 +55,11 @@ pipeline {
              when {
                 branch 'develop'
             }
-            agent any
+            agent {
+                docker { 
+                    image 'bitnami/kubectl:latest'
+                }
+            }
             steps {
                 withKubeConfig([credentialsId: 'minikube-kubeconfig']) {
                     script {
@@ -75,7 +79,11 @@ pipeline {
              when {
                 branch 'develop'
             }
-            agent any
+            agent {
+                docker { 
+                    image 'bitnami/kubectl:latest'
+                }
+            }
             steps {
                 withKubeConfig([credentialsId: 'minikube-kubeconfig']) {
                     sh "kubectl set image deployment/$KUBE_DEPLOYMENT_NAME mi-app=$DOCKER_REPO:latest"
