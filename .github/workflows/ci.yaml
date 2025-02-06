@@ -1,0 +1,25 @@
+name: Flujo de trabajo para construir image
+
+on: 
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Instalar dependencias...
+        uses: npm install
+      
+      - name: Ejecutar tests...
+        uses: npm run test
+
