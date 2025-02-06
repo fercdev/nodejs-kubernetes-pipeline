@@ -65,5 +65,5 @@ jobs:
         env:
           KUBE_CONFIG: ${{ secrets.CLUSTER_KUBE_CONFIG_K8 }}
         with:
-          args: kubectl apply -f deployment.yaml
+          args: apply -f deployment.yaml
 
