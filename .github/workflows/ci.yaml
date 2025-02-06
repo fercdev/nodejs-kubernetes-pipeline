@@ -54,6 +54,19 @@ jobs:
       - name: Publicando imagen al dockerhub..
         run: |
           docker push fercdevv/jenkins-node:latest
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+      
+      - name: Configurar kubectl...
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.CLUSTER_KUBE_CONFIG_K8 }}
 
+      - name: Desplegar en el cluster..
+        run: |
+          kubectl apply -f deployment.yaml
 
 
