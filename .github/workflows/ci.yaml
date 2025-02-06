@@ -61,12 +61,9 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Configurar kubectl...
-        uses: azure/setup-kubectl@v4
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.CLUSTER_KUBE_CONFIG_K8 }}
         with:
-          kubeconfig: ${{ secrets.CLUSTER_KUBE_CONFIG_K8 }}
-
-      - name: Desplegar en el cluster..
-        run: |
-          kubectl apply -f deployment.yaml
-
+          args: kubectl apply -f deployment.yaml
 
