@@ -1,4 +1,4 @@
-name: Flujo de trabajo para validar cache en actions
+name: Flujo de trabajo para validar cache de otro workflow
 
 on: 
   push:
@@ -6,8 +6,7 @@ on:
       - codigo
 
 jobs:      
-  test-cache:
-    needs: install
+  cache:
     runs-on: ubuntu-latest
     steps:
       - name: Restaurar dependencias de npm
