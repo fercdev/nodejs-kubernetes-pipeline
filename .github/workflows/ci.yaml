@@ -27,6 +27,12 @@ jobs:
       - name: Instalar dependencias...
         run: npm install
 
+      - name: Subir carpeta node_modules como artifact
+        id: upload_artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: node_modules
+          path: node_modules/
       
   test-cache:
     needs: install
@@ -42,8 +48,11 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-dependencies
 
-      - name: Validar que tengo npm...
-        run: npm --version
+      - name: Descargar node_modules artifact..
+        uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+          path: ./node_modules
 
       - name: Ejecutar mis tests..
         run: npm run test
