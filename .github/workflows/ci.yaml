@@ -41,11 +41,12 @@ jobs:
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-dependencies
-      
-      - name: Ejecutar tests...
-        run: ls -la ~/.npm
 
-      - name: Ejecutar tests...
+      - name: Validar que tengo npm...
         run: npm --version
+
+      - name: Ejecutar mis tests..
+        run: npm run test
+      
 
 
