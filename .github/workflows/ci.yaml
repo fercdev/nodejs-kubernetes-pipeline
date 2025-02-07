@@ -29,6 +29,7 @@ jobs:
 
       
   test-cache:
+    needs: install
     runs-on: ubuntu-latest
     steps:
       - name: Clonar repositorio
