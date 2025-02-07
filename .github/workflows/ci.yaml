@@ -54,6 +54,9 @@ jobs:
           name: node_modules
           path: ./node_modules
 
+      - name: Validar path de mis archivos..
+        run: ls -la
+
       - name: Ejecutar mis tests..
         run: npm run test
       
